@@ -112,106 +112,102 @@
   <section id="about" style="padding:40px 16px;">關於我們：內容待加入</section>
 
   <script>
-  (function(){
-    const hero = document.getElementById('hero');
-    const slides = Array.from(hero.querySelectorAll('.slide'));
-    const dotsWrap = hero.querySelector('.dots');
-    const prevBtn = hero.querySelector('.arrow.prev');
-    const nextBtn = hero.querySelector('.arrow.next');
-    const badge = hero.querySelector('#badge');
+(function(){
+  const hero = document.getElementById('hero');
+  const slides = Array.from(hero.querySelectorAll('.slide'));
+  const dotsWrap = hero.querySelector('.dots');
+  const prevBtn = hero.querySelector('.arrow.prev');
+  const nextBtn = hero.querySelector('.arrow.next');
+  const badge = hero.querySelector('#badge');
 
-    let index = 0;
-    let autoplay = hero.dataset.autoplay === 'true';
-    let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
-    let timer = null;
-    let userPaused = false;
+  if (!slides.length) return;
 
-    // Build dots
-    slides.forEach((_, i) => {
-      const b = document.createElement('button');
-      b.className = 'dot';
-      b.type = 'button';
-      b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', `前往第 ${i+1} 張`);
-      b.setAttribute('aria-controls', `slide-${i+1}`);
-      b.addEventListener('click', () => goTo(i, true));
-      dotsWrap.appendChild(b);
+  let index = 0;
+  let autoplay = hero.dataset.autoplay === 'true';
+  let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
+  let timer = null;
+  let userPaused = false;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const b = document.createElement('button');
+    b.className = 'dot';
+    b.type = 'button';
+    b.setAttribute('role', 'tab');
+    b.setAttribute('aria-label', `前往第 ${i+1} 張`);
+    b.addEventListener('click', () => goTo(i, true));
+    dotsWrap.appendChild(b);
+  });
+
+  function syncUI(){
+    slides.forEach((s, i) => {
+      const active = i === index;
+      s.classList.toggle('is-active', active);
+      s.setAttribute('aria-hidden', String(!active));
     });
+    const dots = dotsWrap.querySelectorAll('.dot');
+    dots.forEach((d, i) => d.setAttribute('aria-current', i === index ? 'true' : 'false'));
+  }
 
-    function syncUI(){
-      slides.forEach((s, i) => {
-        const active = i === index;
-        s.classList.toggle('is-active', active);
-        s.setAttribute('aria-hidden', String(!active));
-      });
-      const dots = dotsWrap.querySelectorAll('.dot');
-      dots.forEach((d, i) => {
-        d.setAttribute('aria-current', i === index ? 'true' : 'false');
-        d.title = i === index ? '目前圖片' : `前往第 ${i+1} 張`;
-      });
+  function goTo(i, fromUser=false){
+    index = (i + slides.length) % slides.length;
+    syncUI();
+    if (fromUser) restartAutoplay();
+  }
+  function next(){ goTo(index + 1); }
+  function prev(){ goTo(index - 1); }
+
+  function startAutoplay(){
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    if (!autoplay || userPaused) return;
+    stopAutoplay();
+    timer = setInterval(next, intervalMs);
+  }
+  function stopAutoplay(){ if (timer) clearInterval(timer); timer = null; }
+  function restartAutoplay(){ stopAutoplay(); startAutoplay(); }
+
+  // Controls
+  nextBtn.addEventListener('click', () => { next(); restartAutoplay(); });
+  prevBtn.addEventListener('click', () => { prev(); restartAutoplay(); });
+
+  // Pause on hover
+  hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
+  hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'ArrowRight') { e.preventDefault(); next(); restartAutoplay(); }
+    else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); restartAutoplay(); }
+    else if (e.code === 'Space') {
+      e.preventDefault();
+      userPaused = !userPaused;
+      if (userPaused){ stopAutoplay(); badge.style.opacity = '1'; }
+      else { startAutoplay(); badge.style.opacity = '0'; startAutoplay(); }
     }
+  });
 
-    function goTo(i, fromUser=false){
-      index = (i + slides.length) % slides.length;
-      syncUI();
-      if (fromUser) restartAutoplay();
-    }
+  // Visibility
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stopAutoplay();
+    else if (!userPaused) startAutoplay();
+  });
 
-    function next(){ goTo(index + 1); }
-    function prev(){ goTo(index - 1); }
+  // Touch swipe
+  let startX = 0, dx = 0, touching = false;
+  hero.addEventListener('touchstart', (e) => {
+    touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay();
+  }, {passive:true});
+  hero.addEventListener('touchmove', (e) => { if (!touching) return; dx = e.touches[0].clientX - startX; }, {passive:true});
+  hero.addEventListener('touchend', () => {
+    if (!touching) return; touching = false;
+    if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
+    if (!userPaused) startAutoplay();
+  });
 
-    function startAutoplay(){
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-      if (!autoplay || userPaused) return;
-      stopAutoplay();
-      timer = setInterval(next, intervalMs);
-    }
-    function stopAutoplay(){ if (timer) clearInterval(timer); timer = null; }
-    function restartAutoplay(){ stopAutoplay(); startAutoplay(); }
-
-    // Controls
-    nextBtn.addEventListener('click', () => next());
-    prevBtn.addEventListener('click', () => prev());
-
-    // Pause on hover / focus inside hero
-    hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
-    hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
-
-    // Keyboard
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
-      else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
-      else if (e.code === 'Space') {
-        e.preventDefault();
-        userPaused = !userPaused;
-        if (userPaused){ stopAutoplay(); badge.style.opacity = '1'; }
-        else { startAutoplay(); badge.style.opacity = '0'; }
-      }
-    });
-
-    // Visibility
-    document.addEventListener('visibilitychange', () => {
-      if (document.hidden) stopAutoplay();
-      else if (!userPaused) startAutoplay();
-    });
-
-    // Touch swipe
-    let startX = 0, dx = 0, touching = false;
-    hero.addEventListener('touchstart', (e) => {
-      touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay();
-    }, {passive:true});
-    hero.addEventListener('touchmove', (e) => {
-      if (!touching) return; dx = e.touches[0].clientX - startX;
-    }, {passive:true});
-    hero.addEventListener('touchend', () => {
-      if (!touching) return; touching = false;
-      if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
-      if (!userPaused) startAutoplay();
-    });
-
-    // Initial
-    syncUI(); startAutoplay();
-  })();
-  </script>
+  // Initial paint + start
+  syncUI();
+  startAutoplay();
+})();
+</script>
 </body>
 </html>
