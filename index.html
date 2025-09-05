@@ -329,7 +329,11 @@
     function prev(){ goTo(index - 1); }
 
     function startAutoplay(){
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      function startAutoplay(){
+  if (!autoplay || userPaused) return;
+  stopAutoplay();
+  timer = setInterval(next, intervalMs);
+}
       if (!autoplay || userPaused) return;
       stopAutoplay(); timer = setInterval(next, intervalMs);
     }
