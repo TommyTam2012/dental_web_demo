@@ -4,91 +4,51 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dental Web Demo</title>
-  <style>
-    :root{
-      /* ↓ reduced ~40% */
-      --hero-min-h: 260px;
-      --hero-h: 37vh;
-      --overlay: rgba(0,0,0,.28);
-      --accent: #1e90ff;
-      --dot: #ffffffaa;
-      --dot-active: #fff;
-      --ctrl-bg: #00000055;
-      --ctrl-bg-hover: #00000088;
-      --radius: 12px;
-      --shadow: 0 10px 30px rgba(0,0,0,.25);
-      --header-h: 56px;
-    }
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#222; line-height:1.5; padding-top: var(--header-h); }
+<style>
+:root{
+  /* taller to reveal faces/text (was 37vh/260px) */
+  --hero-min-h: 360px;
+  --hero-h: 50vh;
+  --overlay: rgba(0,0,0,.22); /* slightly lighter */
+  --accent: #1e90ff;
+  --dot: #ffffffaa;
+  --dot-active: #fff;
+  --ctrl-bg: #00000055;
+  --ctrl-bg-hover: #00000088;
+  --radius: 12px;
+  --shadow: 0 10px 30px rgba(0,0,0,.25);
+  --header-h: 56px;
+}
+.hero { position: relative; height: var(--hero-h); min-height: var(--hero-min-h); overflow: hidden; background:#111; color:#fff; isolation:isolate; }
+.hero::after{ content:""; position:absolute; inset:0; background:var(--overlay); z-index:1; }
+.slides { position:absolute; inset:0; }
+.slide { position:absolute; inset:0; opacity:0; transition:opacity 900ms ease; will-change:opacity; z-index:0; }
+.slide.is-active { opacity:1; z-index:1; }
+.slide img{
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover;
+  /* bias crop to top-center so faces don’t get cut off */
+  object-position: 50% 20%;
+}
+.hero-content{ position:relative; z-index:2; height:100%; display:grid; place-items:center; text-align:center; padding:1rem; }
+.hero-inner{ max-width:1100px; margin:0 auto; text-shadow:0 2px 10px rgba(0,0,0,.6); }
+.hero h1{ font-size:clamp(1.7rem,3.4vw,2.6rem); margin:0 0 .4rem; }
+.hero p{ font-size:clamp(.98rem,1.45vw,1.1rem); margin:0 0 .8rem; opacity:.95; }
+.cta{ display:inline-block; padding:.6rem 1rem; background:var(--accent); color:#fff; text-decoration:none; border-radius:.6rem; box-shadow:var(--shadow); font-weight:600; }
 
-    /* SIMPLE TOP NAV (no dropdown) */
-    .site-header{
-      position: fixed; top:0; left:0; right:0; height: var(--header-h);
-      display:flex; align-items:center; justify-content:space-between;
-      padding: 0 14px; background:#ffffffee; backdrop-filter: blur(6px);
-      border-bottom: 1px solid #00000010; z-index: 10;
-    }
-    .brand{ font-weight: 700; }
-    .nav{
-      display:flex; gap: 14px; flex-wrap: wrap;
-    }
-    .nav a{
-      color:#222; text-decoration:none; padding: 6px 8px; border-radius: 8px;
-    }
-    .nav a:hover{ background:#00000007; }
-
-    /* HERO / CAROUSEL */
-    .hero {
-      position: relative;
-      height: var(--hero-h);
-      min-height: var(--hero-min-h);
-      overflow: hidden;
-      background: #111;
-      color: #fff;
-      isolation: isolate;
-    }
-    .hero::after{
-      content:""; position:absolute; inset:0; background: var(--overlay); z-index:1;
-    }
-    .slides { position: absolute; inset:0; }
-    .slide { position: absolute; inset:0; opacity: 0; transition: opacity 900ms ease; will-change: opacity; }
-    .slide.is-active { opacity: 1; }
-    .slide img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
-
-    /* CONTENT OVERLAY */
-    .hero-content{
-      position: relative; z-index: 2; height: 100%;
-      display: grid; place-items: center; text-align: center; padding: 1rem;
-    }
-    .hero-inner{ max-width: 1100px; margin: 0 auto; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
-    .hero h1{ font-size: clamp(1.6rem, 3.2vw, 2.4rem); margin: 0 0 .4rem; }
-    .hero p{ font-size: clamp(.95rem, 1.4vw, 1.05rem); margin: 0 0 .8rem; opacity:.95; }
-    .cta{ display:inline-block; padding:.6rem 1rem; background: var(--accent); color:#fff; text-decoration:none; border-radius: .6rem; box-shadow: var(--shadow); font-weight: 600; }
-
-    /* CONTROLS */
-    .carousel-controls{ position:absolute; inset: 0; z-index: 3; pointer-events: none; }
-    .arrow{
-      position:absolute; top:50%; transform: translateY(-50%);
-      width: 40px; height:40px; border-radius: 999px;
-      background: var(--ctrl-bg); color:#fff; border:none; display:grid; place-items:center; cursor:pointer; pointer-events: auto;
-    }
-    .arrow:hover{ background: var(--ctrl-bg-hover); }
-    .arrow:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
-    .arrow.prev{ left: 10px; }
-    .arrow.next{ right: 10px; }
-
-    .dots{ position:absolute; left:50%; bottom: 10px; transform: translateX(-50%); display:flex; gap: 10px; z-index:3; pointer-events:auto; }
-    .dot{ width: 10px; height:10px; border-radius:999px; background: var(--dot); border: 1px solid #ffffff77; cursor:pointer; }
-    .dot[aria-current="true"]{ background: var(--dot-active); border-color: #fff; }
-    .badge{ position:absolute; right:10px; bottom:10px; z-index:3; background:#00000066; color:#fff; padding:.2rem .45rem; border-radius:.5rem; font-size:.8rem; opacity:0; transition: opacity .2s ease; pointer-events:none; }
-    .hero:hover .badge{ opacity:1; }
-
-    /* Reduced motion */
-    @media (prefers-reduced-motion: reduce){
-      .slide{ transition:none; }
-    }
-  </style>
+/* controls (unchanged) */
+.carousel-controls{ position:absolute; inset:0; z-index:3; pointer-events:none; }
+.arrow{ position:absolute; top:50%; transform:translateY(-50%); width:40px; height:40px; border-radius:999px; background:var(--ctrl-bg); color:#fff; border:none; display:grid; place-items:center; cursor:pointer; pointer-events:auto; }
+.arrow:hover{ background:var(--ctrl-bg-hover); }
+.arrow:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
+.arrow.prev{ left:10px; } .arrow.next{ right:10px; }
+.dots{ position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:10px; z-index:3; pointer-events:auto; }
+.dot{ width:10px; height:10px; border-radius:999px; background:var(--dot); border:1px solid #ffffff77; cursor:pointer; }
+.dot[aria-current="true"]{ background:var(--dot-active); border-color:#fff; }
+.badge{ position:absolute; right:10px; bottom:10px; z-index:3; background:#00000066; color:#fff; padding:.2rem .45rem; border-radius:.5rem; font-size:.8rem; opacity:0; transition:opacity .2s ease; pointer-events:none; }
+.hero:hover .badge{ opacity:1; }
+@media (prefers-reduced-motion: reduce){ .slide{ transition:none; } }
+</style>
 </head>
 <body>
 
