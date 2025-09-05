@@ -4,210 +4,376 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dental Web Demo</title>
-<style>
-:root{
-  /* taller to reveal faces/text (was 37vh/260px) */
-  --hero-min-h: 360px;
-  --hero-h: 50vh;
-  --overlay: rgba(0,0,0,.22); /* slightly lighter */
-  --accent: #1e90ff;
-  --dot: #ffffffaa;
-  --dot-active: #fff;
-  --ctrl-bg: #00000055;
-  --ctrl-bg-hover: #00000088;
-  --radius: 12px;
-  --shadow: 0 10px 30px rgba(0,0,0,.25);
-  --header-h: 56px;
-}
-.hero { position: relative; height: var(--hero-h); min-height: var(--hero-min-h); overflow: hidden; background:#111; color:#fff; isolation:isolate; }
-.hero::after{ content:""; position:absolute; inset:0; background:var(--overlay); z-index:1; }
-.slides { position:absolute; inset:0; }
-.slide { position:absolute; inset:0; opacity:0; transition:opacity 900ms ease; will-change:opacity; z-index:0; }
-.slide.is-active { opacity:1; z-index:1; }
-.slide img{
-  position:absolute; inset:0; width:100%; height:100%;
-  object-fit:cover;
-  /* bias crop to top-center so faces don’t get cut off */
-  object-position: 50% 20%;
-}
-.hero-content{ position:relative; z-index:2; height:100%; display:grid; place-items:center; text-align:center; padding:1rem; }
-.hero-inner{ max-width:1100px; margin:0 auto; text-shadow:0 2px 10px rgba(0,0,0,.6); }
-.hero h1{ font-size:clamp(1.7rem,3.4vw,2.6rem); margin:0 0 .4rem; }
-.hero p{ font-size:clamp(.98rem,1.45vw,1.1rem); margin:0 0 .8rem; opacity:.95; }
-.cta{ display:inline-block; padding:.6rem 1rem; background:var(--accent); color:#fff; text-decoration:none; border-radius:.6rem; box-shadow:var(--shadow); font-weight:600; }
+  <style>
+    :root{
+      --hero-min-h: 420px;         /* taller hero for faces + signage */
+      --hero-h: 56vh;
+      --overlay: rgba(0,0,0,.20);
+      --accent-1: #22c1c3;
+      --accent-2: #1e90ff;
+      --brand-gradient: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      --dot: #ffffffaa;
+      --dot-active: #fff;
+      --ctrl-bg: #0000004d;
+      --ctrl-bg-hover: #00000080;
+      --radius: 16px;
+      --shadow-sm: 0 6px 16px rgba(0,0,0,.12);
+      --shadow-lg: 0 18px 50px rgba(0,0,0,.18);
+      --header-h: 64px;
+      --container: min(1100px, 92vw);
+      --bg: #f6f9fc;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, "PingFang TC", "Noto Sans TC", Arial, sans-serif; color:#1b1f24; line-height:1.55; background: var(--bg); padding-top: var(--header-h); }
 
-/* controls (unchanged) */
-.carousel-controls{ position:absolute; inset:0; z-index:3; pointer-events:none; }
-.arrow{ position:absolute; top:50%; transform:translateY(-50%); width:40px; height:40px; border-radius:999px; background:var(--ctrl-bg); color:#fff; border:none; display:grid; place-items:center; cursor:pointer; pointer-events:auto; }
-.arrow:hover{ background:var(--ctrl-bg-hover); }
-.arrow:focus-visible{ outline:2px solid #fff; outline-offset:2px; }
-.arrow.prev{ left:10px; } .arrow.next{ right:10px; }
-.dots{ position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; gap:10px; z-index:3; pointer-events:auto; }
-.dot{ width:10px; height:10px; border-radius:999px; background:var(--dot); border:1px solid #ffffff77; cursor:pointer; }
-.dot[aria-current="true"]{ background:var(--dot-active); border-color:#fff; }
-.badge{ position:absolute; right:10px; bottom:10px; z-index:3; background:#00000066; color:#fff; padding:.2rem .45rem; border-radius:.5rem; font-size:.8rem; opacity:0; transition:opacity .2s ease; pointer-events:none; }
-.hero:hover .badge{ opacity:1; }
-@media (prefers-reduced-motion: reduce){ .slide{ transition:none; } }
-</style>
+    /* CONTAINER */
+    .container { width: var(--container); margin: 0 auto; }
+
+    /* HEADER */
+    .site-header{
+      position: fixed; inset: 0 0 auto 0; height: var(--header-h);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 18px; background:#ffffffea; backdrop-filter: blur(8px);
+      border-bottom: 1px solid #00000010; z-index: 20;
+    }
+    .brand{
+      font-weight: 800; letter-spacing:.2px;
+      background: var(--brand-gradient);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+      font-size: 1.05rem;
+    }
+    .nav{ display:flex; gap: 16px; flex-wrap: wrap; }
+    .nav a{
+      position: relative; color:#111; text-decoration:none; padding: 8px 6px; border-radius: 10px;
+    }
+    .nav a::after{
+      content:""; position:absolute; left:8px; right:8px; bottom: 4px; height:2px;
+      background: var(--brand-gradient); transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+    }
+    .nav a:hover::after{ transform: scaleX(1); }
+
+    /* HERO */
+    .hero {
+      position: relative;
+      height: var(--hero-h);
+      min-height: var(--hero-min-h);
+      overflow: hidden;
+      background: #0b1220;
+      color: #fff; isolation: isolate;
+    }
+    /* Radial + gradient overlay for premium feel */
+    .hero::before{
+      content:""; position:absolute; inset:-10% -20% -10% -20%;
+      background:
+        radial-gradient(1200px 400px at 50% 20%, rgba(255,255,255,.18), transparent 60%),
+        var(--brand-gradient);
+      opacity:.25; filter: blur(30px); z-index:0; mix-blend-mode: screen;
+    }
+    .hero::after{
+      content:""; position:absolute; inset:0; background: var(--overlay); z-index:1;
+    }
+    .slides { position: absolute; inset:0; }
+    .slide { position: absolute; inset:0; opacity: 0; transition: opacity 900ms ease; will-change: opacity; z-index:0; }
+    .slide.is-active { opacity: 1; z-index:1; }
+    .slide img{
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+      /* keep more top area for faces + signage */
+      object-position: 50% 18%;
+    }
+
+    /* HERO CONTENT */
+    .hero-content{
+      position: relative; z-index: 2; height: 100%;
+      display: grid; place-items: center; text-align: center; padding: 1rem;
+    }
+    .hero-inner{ width: var(--container); margin: 0 auto; text-shadow: 0 2px 10px rgba(0,0,0,.55); }
+    .eyebrow{
+      display:inline-block; padding:.25rem .6rem; border-radius: 999px;
+      background: #0000006b; backdrop-filter: blur(4px); border: 1px solid #ffffff22; font-size:.8rem; margin-bottom:.5rem;
+    }
+    .hero h1{ font-size: clamp(1.8rem, 3.6vw, 3rem); margin: 0 0 .5rem; }
+    .hero p{ font-size: clamp(1rem, 1.6vw, 1.1rem); margin: 0 0 1rem; opacity:.95; }
+    .cta{
+      display:inline-block; padding:.75rem 1.2rem; color:#fff; text-decoration:none;
+      background: var(--brand-gradient); border-radius: .8rem; box-shadow: var(--shadow-lg); font-weight: 700;
+      transform: translateY(0); transition: transform .18s ease, box-shadow .18s ease, opacity .2s ease;
+    }
+    .cta:hover{ transform: translateY(-2px); box-shadow: 0 20px 50px rgba(30,144,255,.35); }
+
+    /* CONTROLS */
+    .carousel-controls{ position:absolute; inset: 0; z-index: 3; pointer-events: none; }
+    .arrow{
+      position:absolute; top:50%; transform: translateY(-50%);
+      width: 44px; height:44px; border-radius: 999px;
+      background: var(--ctrl-bg); color:#fff; border: 1px solid #ffffff3a;
+      display:grid; place-items:center; cursor:pointer; pointer-events: auto; backdrop-filter: blur(6px);
+      transition: transform .18s ease, background .18s ease;
+    }
+    .arrow:hover{ background: var(--ctrl-bg-hover); transform: translateY(-50%) scale(1.05); }
+    .arrow:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
+    .arrow.prev{ left: 14px; } .arrow.next{ right: 14px; }
+
+    .dots{ position:absolute; left:50%; bottom: 14px; transform: translateX(-50%); display:flex; gap: 10px; z-index:3; pointer-events:auto; }
+    .dot{
+      width: 12px; height:12px; border-radius:999px; background: var(--dot);
+      border: 1px solid #ffffff88; cursor:pointer; box-shadow: 0 2px 6px rgba(0,0,0,.2);
+      transition: transform .15s ease, background .15s ease;
+    }
+    .dot[aria-current="true"]{ background: var(--dot-active); border-color: #fff; transform: scale(1.05); }
+    .badge{ position:absolute; right:14px; bottom:14px; z-index:3; background:#00000066; color:#fff; padding:.25rem .5rem; border-radius:.6rem; font-size:.82rem; opacity:0; transition: opacity .2s ease; pointer-events:none; }
+    .hero:hover .badge{ opacity:1; }
+
+    /* TRUST BAR */
+    .trustbar{
+      position: relative; z-index: 5; margin-top: -22px;
+      background:#fff; border-radius: var(--radius); box-shadow: var(--shadow-lg);
+      width: var(--container); margin-left:auto; margin-right:auto; padding: 14px 18px;
+      display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+    }
+    .trustitem{
+      display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius: 12px;
+      background: linear-gradient(#fff, #fff) padding-box, var(--brand-gradient) border-box; border: 1px solid transparent;
+    }
+    .trustitem svg{ flex: 0 0 22px; }
+    .trustitem strong{ display:block; font-weight:800; }
+    .trustitem span{ opacity:.8; font-size:.92rem; }
+
+    /* SECTIONS */
+    section.page { padding: 56px 0; }
+    .section-title{
+      font-weight: 800; font-size: clamp(1.4rem,2.4vw,1.8rem); margin: 0 0 18px;
+      background: var(--brand-gradient); -webkit-background-clip:text; background-clip:text; color: transparent;
+    }
+    .grid { display:grid; gap: 16px; }
+    @media (min-width: 760px){ .grid.cols-3{ grid-template-columns: repeat(3, 1fr); } .grid.cols-2{ grid-template-columns: repeat(2, 1fr); } }
+
+    .card{
+      background: linear-gradient(#fff, #fff) padding-box, var(--brand-gradient) border-box;
+      border: 1px solid transparent; border-radius: 18px; box-shadow: var(--shadow-sm);
+      padding: 18px; transition: transform .18s ease, box-shadow .18s ease;
+    }
+    .card:hover{ transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+    /* REVEAL (scroll-in) */
+    [data-reveal]{ opacity:0; transform: translateY(14px); transition: opacity .5s ease, transform .5s ease; }
+    [data-reveal].reveal{ opacity:1; transform: translateY(0); }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce){
+      .slide{ transition:none; }
+      [data-reveal]{ opacity:1; transform:none; }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- SIMPLE HEADER NAV -->
-<header class="site-header">
-  <div class="brand">九洲齿科香港九洲国际</div>
-  <nav class="nav" aria-label="主選單">
-    <a href="#clinic">我們的診所</a>
-    <a href="#cosmetic">美容牙科</a>
-    <a href="#general">一般牙科</a>
-    <a href="#contact">聯絡我們</a>
-    <a href="#about">關於我們</a>
-  </nav>
-</header>
+  <!-- HEADER -->
+  <header class="site-header">
+    <div class="brand">九洲齿科香港九洲国际</div>
+    <nav class="nav" aria-label="主選單">
+      <a href="#clinic">我們的診所</a>
+      <a href="#cosmetic">美容牙科</a>
+      <a href="#general">一般牙科</a>
+      <a href="#contact">聯絡我們</a>
+      <a href="#about">關於我們</a>
+    </nav>
+  </header>
 
-<!-- HERO CAROUSEL -->
-<section class="hero" id="hero"
-  role="region"
-  aria-roledescription="carousel"
-  aria-label="牙科精選圖片"
-  aria-live="off"
-  data-autoplay="true"
-  data-interval="5000"
->
-  <div class="slides">
-    <figure class="slide is-active" aria-hidden="false">
-      <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_1.png" alt="現代化牙科診所環境" loading="eager" decoding="async">
-    </figure>
-    <figure class="slide" aria-hidden="true">
-      <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_2.png" alt="專業牙醫諮詢" loading="lazy" decoding="async">
-    </figure>
-    <figure class="slide" aria-hidden="true">
-      <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_3.png" alt="舒適治療室" loading="lazy" decoding="async">
-    </figure>
-    <figure class="slide" aria-hidden="true">
-      <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_4.png" alt="親切的接待區" loading="lazy" decoding="async">
-    </figure>
-  </div>
+  <!-- HERO -->
+  <section class="hero" id="hero"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="牙科精選圖片"
+    aria-live="off"
+    data-autoplay="true"
+    data-interval="5000"
+  >
+    <div class="slides">
+      <figure class="slide is-active" aria-hidden="false">
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_1.png" alt="現代化牙科診所環境" loading="eager" decoding="async">
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_2.png" alt="專業牙醫諮詢" loading="lazy" decoding="async">
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_3.png" alt="舒適治療室" loading="lazy" decoding="async">
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_4.png" alt="親切的接待區" loading="lazy" decoding="async">
+      </figure>
+    </div>
 
-  <div class="hero-content">
-    <div class="hero-inner">
-      <h1>關懷備至、現代牙科</h1>
-      <p>先進技術 • 溫和手法 • 方便預約</p>
-      <a class="cta" href="#contact">立即預約</a>
+    <div class="hero-content">
+      <div class="hero-inner">
+        <span class="eyebrow">深圳 · 南山區 · 近地鐵</span>
+        <h1>關懷備至、現代牙科</h1>
+        <p>先進技術 • 溫和手法 • 方便預約</p>
+        <a class="cta" href="#contact">立即預約</a>
+      </div>
+    </div>
+
+    <div class="carousel-controls" aria-hidden="false">
+      <button class="arrow prev" aria-label="上一張" title="上一張（←）">&#10094;</button>
+      <button class="arrow next" aria-label="下一張" title="下一張（→）">&#10095;</button>
+      <div class="dots" role="tablist" aria-label="選擇圖片"></div>
+      <div class="badge" id="badge">已暫停</div>
+    </div>
+  </section>
+
+  <!-- TRUST BAR -->
+  <div class="trustbar container" data-reveal>
+    <div class="trustitem">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+      <div><strong>4.9★ 評價</strong><span>真實患者口碑</span></div>
+    </div>
+    <div class="trustitem">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 8v5l4 2 1-1-3-1.5V8z"/><path d="M12 22C6.48 22 2 17.52 2 12S6.48 2 12 2s10 4.48 10 10-4.48 10-10 10zm0-18C7.59 4 4 7.59 4 12s3.59 8 8 8 8-3.59 8-8-3.59-8-8-8z"/></svg>
+      <div><strong>15+ 年</strong><span>臨床經驗</span></div>
+    </div>
+    <div class="trustitem">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5S10.62 6.5 12 6.5s2.5 1.12 2.5 2.5S13.38 11.5 12 11.5z"/></svg>
+      <div><strong>交通方便</strong><span>近地鐵 · 有停車</span></div>
     </div>
   </div>
 
-  <div class="carousel-controls" aria-hidden="false">
-    <button class="arrow prev" aria-label="上一張" title="上一張（←）">&#10094;</button>
-    <button class="arrow next" aria-label="下一張" title="下一張（→）">&#10095;</button>
-    <div class="dots" role="tablist" aria-label="選擇圖片"></div>
-    <div class="badge" id="badge">已暫停</div>
-  </div>
-</section>
+  <!-- SECTIONS -->
+  <section id="clinic" class="page">
+    <div class="container" data-reveal>
+      <h2 class="section-title">我們的診所</h2>
+      <div class="card">
+        溫馨、潔淨、以病人為中心的空間設計。先進設備（數位 X 光、口掃等），縮短候診時間。
+      </div>
+    </div>
+  </section>
 
-  <!-- Placeholder sections to match nav anchors -->
-  <section id="clinic" style="padding:40px 16px;">我們的診所：內容待加入</section>
-  <section id="cosmetic" style="padding:40px 16px; background:#fafafa;">美容牙科：內容待加入</section>
-  <section id="general" style="padding:40px 16px;">一般牙科：內容待加入</section>
-  <section id="contact" style="padding:40px 16px; background:#fafafa;">聯絡我們：內容待加入</section>
-  <section id="about" style="padding:40px 16px;">關於我們：內容待加入</section>
+  <section id="cosmetic" class="page" style="background:#fff;">
+    <div class="container" data-reveal>
+      <h2 class="section-title">美容牙科</h2>
+      <div class="grid cols-3">
+        <div class="card">全瓷貼片</div>
+        <div class="card">隱形矯正</div>
+        <div class="card">牙齒美白</div>
+      </div>
+    </div>
+  </section>
 
+  <section id="general" class="page">
+    <div class="container" data-reveal>
+      <h2 class="section-title">一般牙科</h2>
+      <div class="grid cols-3">
+        <div class="card">洗牙與預防</div>
+        <div class="card">無痛舒眠拔智齒</div>
+        <div class="card">植牙與修復</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact" class="page" style="background:#fff;">
+    <div class="container" data-reveal>
+      <h2 class="section-title">聯絡我們</h2>
+      <div class="card">
+        立即預約：<strong>1234-5678</strong>（WhatsApp 同號） · 深圳市南山區 XX 路 XX 號<br />
+        <em>＊表單、地圖與即時通訊按鈕可稍後加上</em>
+      </div>
+    </div>
+  </section>
+
+  <section id="about" class="page">
+    <div class="container" data-reveal>
+      <h2 class="section-title">關於我們</h2>
+      <div class="card">
+        我們致力於提供安心、專業、以結果為導向的牙科照護。歡迎全家一起來看牙！
+      </div>
+    </div>
+  </section>
+
+  <!-- CAROUSEL + REVEAL JS -->
   <script>
-(function(){
-  const hero = document.getElementById('hero');
-  const slides = Array.from(hero.querySelectorAll('.slide'));
-  const dotsWrap = hero.querySelector('.dots');
-  const prevBtn = hero.querySelector('.arrow.prev');
-  const nextBtn = hero.querySelector('.arrow.next');
-  const badge = hero.querySelector('#badge');
+  (function(){
+    const hero = document.getElementById('hero');
+    const slides = Array.from(hero.querySelectorAll('.slide'));
+    const dotsWrap = hero.querySelector('.dots');
+    const prevBtn = hero.querySelector('.arrow.prev');
+    const nextBtn = hero.querySelector('.arrow.next');
+    const badge = hero.querySelector('#badge');
 
-  if (!slides.length) return;
+    if (!slides.length) return;
 
-  let index = 0;
-  let autoplay = hero.dataset.autoplay === 'true';
-  let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
-  let timer = null;
-  let userPaused = false;
+    let index = 0;
+    let autoplay = hero.dataset.autoplay === 'true';
+    let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
+    let timer = null;
+    let userPaused = false;
 
-  // Build dots
-  slides.forEach((_, i) => {
-    const b = document.createElement('button');
-    b.className = 'dot';
-    b.type = 'button';
-    b.setAttribute('role', 'tab');
-    b.setAttribute('aria-label', `前往第 ${i+1} 張`);
-    b.addEventListener('click', () => goTo(i, true));
-    dotsWrap.appendChild(b);
-  });
-
-  function syncUI(){
-    slides.forEach((s, i) => {
-      const active = i === index;
-      s.classList.toggle('is-active', active);
-      s.setAttribute('aria-hidden', String(!active));
+    // Dots
+    slides.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'dot'; b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', `前往第 ${i+1} 張`);
+      b.addEventListener('click', () => goTo(i, true));
+      dotsWrap.appendChild(b);
     });
-    const dots = dotsWrap.querySelectorAll('.dot');
-    dots.forEach((d, i) => d.setAttribute('aria-current', i === index ? 'true' : 'false'));
-  }
 
-  function goTo(i, fromUser=false){
-    index = (i + slides.length) % slides.length;
-    syncUI();
-    if (fromUser) restartAutoplay();
-  }
-  function next(){ goTo(index + 1); }
-  function prev(){ goTo(index - 1); }
-
-  function startAutoplay(){
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-    if (!autoplay || userPaused) return;
-    stopAutoplay();
-    timer = setInterval(next, intervalMs);
-  }
-  function stopAutoplay(){ if (timer) clearInterval(timer); timer = null; }
-  function restartAutoplay(){ stopAutoplay(); startAutoplay(); }
-
-  // Controls
-  nextBtn.addEventListener('click', () => { next(); restartAutoplay(); });
-  prevBtn.addEventListener('click', () => { prev(); restartAutoplay(); });
-
-  // Pause on hover
-  hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
-  hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
-
-  // Keyboard
-  document.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowRight') { e.preventDefault(); next(); restartAutoplay(); }
-    else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); restartAutoplay(); }
-    else if (e.code === 'Space') {
-      e.preventDefault();
-      userPaused = !userPaused;
-      if (userPaused){ stopAutoplay(); badge.style.opacity = '1'; }
-      else { startAutoplay(); badge.style.opacity = '0'; startAutoplay(); }
+    function syncUI(){
+      slides.forEach((s, i) => {
+        const active = i === index;
+        s.classList.toggle('is-active', active);
+        s.setAttribute('aria-hidden', String(!active));
+      });
+      dotsWrap.querySelectorAll('.dot').forEach((d, i) => d.setAttribute('aria-current', i === index ? 'true' : 'false'));
     }
-  });
+    function goTo(i, fromUser=false){ index = (i + slides.length) % slides.length; syncUI(); if (fromUser) restartAutoplay(); }
+    function next(){ goTo(index + 1); }
+    function prev(){ goTo(index - 1); }
 
-  // Visibility
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) stopAutoplay();
-    else if (!userPaused) startAutoplay();
-  });
+    function startAutoplay(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!autoplay || userPaused) return;
+      stopAutoplay(); timer = setInterval(next, intervalMs);
+    }
+    function stopAutoplay(){ if (timer) clearInterval(timer); timer = null; }
+    function restartAutoplay(){ stopAutoplay(); startAutoplay(); }
 
-  // Touch swipe
-  let startX = 0, dx = 0, touching = false;
-  hero.addEventListener('touchstart', (e) => {
-    touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay();
-  }, {passive:true});
-  hero.addEventListener('touchmove', (e) => { if (!touching) return; dx = e.touches[0].clientX - startX; }, {passive:true});
-  hero.addEventListener('touchend', () => {
-    if (!touching) return; touching = false;
-    if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
-    if (!userPaused) startAutoplay();
-  });
+    nextBtn.addEventListener('click', () => { next(); restartAutoplay(); });
+    prevBtn.addEventListener('click', () => { prev(); restartAutoplay(); });
+    hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
+    hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowRight') { e.preventDefault(); next(); restartAutoplay(); }
+      else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); restartAutoplay(); }
+      else if (e.code === 'Space') {
+        e.preventDefault(); userPaused = !userPaused;
+        if (userPaused){ stopAutoplay(); badge.style.opacity = '1'; }
+        else { startAutoplay(); badge.style.opacity = '0'; }
+      }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopAutoplay(); else if (!userPaused) startAutoplay();
+    });
 
-  // Initial paint + start
-  syncUI();
-  startAutoplay();
-})();
-</script>
+    // Touch swipe
+    let startX = 0, dx = 0, touching = false;
+    hero.addEventListener('touchstart', (e) => { touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay(); }, {passive:true});
+    hero.addEventListener('touchmove', (e) => { if (!touching) return; dx = e.touches[0].clientX - startX; }, {passive:true});
+    hero.addEventListener('touchend', () => {
+      if (!touching) return; touching = false;
+      if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
+      if (!userPaused) startAutoplay();
+    });
+
+    // Start
+    syncUI(); startAutoplay();
+
+    // SCROLL REVEAL
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting){ entry.target.classList.add('reveal'); io.unobserve(entry.target); }
+      });
+    }, { threshold: 0.14 });
+    document.querySelectorAll('[data-reveal]').forEach(el => io.observe(el));
+  })();
+  </script>
 </body>
 </html>
