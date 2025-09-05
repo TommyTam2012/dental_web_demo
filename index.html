@@ -1,43 +1,291 @@
-<!-- HERO -->
-<section class="hero">
-  <div class="slides">
-    <img src="/img/hero-1.jpg" alt="">
-    <img src="/img/hero-2.jpg" alt="">
-    <img src="/img/hero-3.jpg" alt="">
-  </div>
-  <div class="hero-content">
-    <h1>Compassionate Care, Modern Dentistry</h1>
-    <a class="cta" href="#book">Book Appointment</a>
-  </div>
-</section>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dental Web Demo</title>
+  <style>
+    :root{
+      --hero-min-h: 420px;
+      --hero-h: 62vh;
+      --overlay: rgba(0,0,0,.28);
+      --accent: #1e90ff;
+      --dot: #ffffffaa;
+      --dot-active: #fff;
+      --ctrl-bg: #00000055;
+      --ctrl-bg-hover: #00000088;
+      --radius: 12px;
+      --shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#222; line-height:1.5; }
 
-<style>
-.hero { position: relative; height: 60vh; min-height: 420px; overflow: hidden; }
-.slides { position: absolute; inset: 0; }
-.slides img {
-  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
-  opacity: 0; transition: opacity 1.2s ease;
-}
-.slides img.active { opacity: 1; }
-.hero::after{ /* subtle dark overlay for text contrast */
-  content:""; position:absolute; inset:0; background:rgba(0,0,0,.25);
-}
-.hero-content{
-  position: relative; z-index: 1; color: #fff; text-align: center;
-  top: 50%; transform: translateY(-50%);
-}
-.cta{ display:inline-block; margin-top:1rem; padding:.7rem 1.2rem; background:#1e90ff; color:#fff; border-radius:.5rem; text-decoration:none; }
-</style>
+    /* HERO / CAROUSEL */
+    .hero {
+      position: relative;
+      height: var(--hero-h);
+      min-height: var(--hero-min-h);
+      overflow: hidden;
+      background: #111;
+      color: #fff;
+      isolation: isolate;
+    }
+    .hero::after{
+      content:""; position:absolute; inset:0; background: var(--overlay); z-index:1;
+    }
+    .slides {
+      position: absolute; inset:0;
+    }
+    .slide {
+      position: absolute; inset:0;
+      opacity: 0;
+      transition: opacity 900ms ease;
+      will-change: opacity;
+    }
+    .slide img{
+      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    }
+    .slide.is-active { opacity: 1; }
 
-<script>
-(function(){
-  const imgs = document.querySelectorAll('.slides img');
-  let i = 0;
-  imgs[0].classList.add('active');
-  setInterval(() => {
-    imgs[i].classList.remove('active');
-    i = (i + 1) % imgs.length;
-    imgs[i].classList.add('active');
-  }, 5000); // change every 5s
-})();
-</script>
+    /* CONTENT OVERLAY */
+    .hero-content{
+      position: relative; z-index: 2; /* above overlay */
+      height: 100%;
+      display: grid; place-items: center;
+      text-align: center; padding: 1rem;
+    }
+    .hero-inner{
+      max-width: 1100px; margin: 0 auto;
+      text-shadow: 0 2px 10px rgba(0,0,0,.6);
+    }
+    .hero h1{ font-size: clamp(1.8rem, 3.8vw, 3rem); margin: 0 0 .5rem; }
+    .hero p{ font-size: clamp(1rem, 1.6vw, 1.15rem); margin: 0 0 1rem; opacity:.95; }
+    .cta{
+      display:inline-block; padding:.75rem 1.1rem; background: var(--accent); color:#fff; text-decoration:none;
+      border-radius: .6rem; box-shadow: var(--shadow); font-weight: 600;
+    }
+
+    /* CONTROLS */
+    .carousel-controls{
+      position:absolute; inset: 0; z-index: 3; pointer-events: none;
+    }
+    .arrow{
+      position:absolute; top:50%; transform: translateY(-50%);
+      width: 44px; height:44px; border-radius: 999px;
+      background: var(--ctrl-bg); color:#fff; border:none;
+      display:grid; place-items:center; cursor:pointer;
+      pointer-events: auto;
+    }
+    .arrow:hover{ background: var(--ctrl-bg-hover); }
+    .arrow:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
+    .arrow.prev{ left: 12px; }
+    .arrow.next{ right: 12px; }
+
+    .dots{
+      position:absolute; left:50%; bottom: 12px; transform: translateX(-50%);
+      display:flex; gap: 10px; z-index:3; pointer-events:auto;
+    }
+    .dot{
+      width: 10px; height:10px; border-radius:999px; background: var(--dot);
+      border: 1px solid #ffffff77; cursor:pointer;
+    }
+    .dot[aria-current="true"]{ background: var(--dot-active); border-color: #fff; }
+
+    /* PAUSE BADGE (on hover) */
+    .badge{
+      position:absolute; right:12px; bottom:12px; z-index:3;
+      background:#00000066; color:#fff; padding:.25rem .5rem; border-radius:.5rem; font-size:.85rem;
+      opacity:0; transition: opacity .2s ease; pointer-events:none;
+    }
+    .hero:hover .badge{ opacity:1; }
+
+    /* Reduced motion: no fades, instant switch & no autoplay */
+    @media (prefers-reduced-motion: reduce){
+      .slide{ transition:none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO CAROUSEL -->
+  <section class="hero" id="hero"
+    role="region"
+    aria-roledescription="carousel"
+    aria-label="Featured dental images"
+    aria-live="off"
+    data-autoplay="true"
+    data-interval="5000"
+  >
+    <div class="slides">
+      <!-- Swap these sources to local /img/*.png later -->
+      <figure class="slide is-active" aria-hidden="false">
+        <img
+          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_1.png"
+          alt="Modern dental clinic environment"
+          loading="eager"
+          decoding="async"
+        >
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img
+          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_2.png"
+          alt="Professional dentist consultation"
+          loading="lazy"
+          decoding="async"
+        >
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img
+          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_3.png"
+          alt="Comfortable treatment room"
+          loading="lazy"
+          decoding="async"
+        >
+      </figure>
+      <figure class="slide" aria-hidden="true">
+        <img
+          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_4.png"
+          alt="Patient-friendly reception area"
+          loading="lazy"
+          decoding="async"
+        >
+      </figure>
+    </div>
+
+    <div class="hero-content">
+      <div class="hero-inner">
+        <h1>Compassionate Care, Modern Dentistry</h1>
+        <p>Advanced technology • Gentle approach • Convenient scheduling</p>
+        <a class="cta" href="#book">Book Appointment</a>
+      </div>
+    </div>
+
+    <!-- Controls & dots -->
+    <div class="carousel-controls" aria-hidden="false">
+      <button class="arrow prev" aria-label="Previous slide" title="Previous (←)">
+        &#10094;
+      </button>
+      <button class="arrow next" aria-label="Next slide" title="Next (→)">
+        &#10095;
+      </button>
+      <div class="dots" role="tablist" aria-label="Choose slide"></div>
+      <div class="badge" id="badge">Paused</div>
+    </div>
+  </section>
+
+  <script>
+  (function(){
+    const hero = document.getElementById('hero');
+    const slides = Array.from(hero.querySelectorAll('.slide'));
+    const dotsWrap = hero.querySelector('.dots');
+    const prevBtn = hero.querySelector('.arrow.prev');
+    const nextBtn = hero.querySelector('.arrow.next');
+    const badge = hero.querySelector('#badge');
+
+    let index = 0;
+    let autoplay = hero.dataset.autoplay === 'true';
+    let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
+    let timer = null;
+    let userPaused = false;
+
+    // Build dots
+    slides.forEach((_, i) => {
+      const b = document.createElement('button');
+      b.className = 'dot';
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', `Go to slide ${i+1}`);
+      b.setAttribute('aria-controls', `slide-${i+1}`);
+      b.addEventListener('click', () => goTo(i, true));
+      dotsWrap.appendChild(b);
+    });
+
+    function syncUI(){
+      slides.forEach((s, i) => {
+        const active = i === index;
+        s.classList.toggle('is-active', active);
+        s.setAttribute('aria-hidden', String(!active));
+      });
+      const dots = dotsWrap.querySelectorAll('.dot');
+      dots.forEach((d, i) => {
+        d.setAttribute('aria-current', i === index ? 'true' : 'false');
+        d.title = i === index ? 'Current slide' : `Go to slide ${i+1}`;
+      });
+    }
+
+    function goTo(i, fromUser=false){
+      index = (i + slides.length) % slides.length;
+      syncUI();
+      if (fromUser) restartAutoplay(); // keeps autoplay feeling responsive
+    }
+
+    function next(){ goTo(index + 1); }
+    function prev(){ goTo(index - 1); }
+
+    function startAutoplay(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      if (!autoplay || userPaused) return;
+      stopAutoplay();
+      timer = setInterval(next, intervalMs);
+    }
+    function stopAutoplay(){
+      if (timer) clearInterval(timer);
+      timer = null;
+    }
+    function restartAutoplay(){
+      stopAutoplay();
+      startAutoplay();
+    }
+
+    // Controls
+    nextBtn.addEventListener('click', () => next());
+    prevBtn.addEventListener('click', () => prev());
+
+    // Pause on hover / focus inside hero
+    hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
+    hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
+
+    // Space toggles manual pause
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
+      else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
+      else if (e.code === 'Space') {
+        e.preventDefault();
+        userPaused = !userPaused;
+        if (userPaused){ stopAutoplay(); badge.style.opacity = '1'; }
+        else { startAutoplay(); badge.style.opacity = '0'; }
+      }
+    });
+
+    // Pause when tab is hidden (battery friendly)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopAutoplay();
+      else if (!userPaused) startAutoplay();
+    });
+
+    // Touch swipe
+    let startX = 0, dx = 0, touching = false;
+    hero.addEventListener('touchstart', (e) => {
+      touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay();
+    }, {passive:true});
+    hero.addEventListener('touchmove', (e) => {
+      if (!touching) return;
+      dx = e.touches[0].clientX - startX;
+    }, {passive:true});
+    hero.addEventListener('touchend', () => {
+      if (!touching) return;
+      touching = false;
+      if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
+      if (!userPaused) startAutoplay();
+    });
+
+    // Initial paint
+    syncUI();
+    startAutoplay();
+  })();
+  </script>
+
+  <!-- (Optional) rest of your page goes here... -->
+
+</body>
+</html>
