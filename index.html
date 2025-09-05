@@ -1,13 +1,14 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Dental Web Demo</title>
   <style>
     :root{
-      --hero-min-h: 420px;
-      --hero-h: 62vh;
+      /* ↓ reduced ~40% */
+      --hero-min-h: 260px;
+      --hero-h: 37vh;
       --overlay: rgba(0,0,0,.28);
       --accent: #1e90ff;
       --dot: #ffffffaa;
@@ -16,9 +17,26 @@
       --ctrl-bg-hover: #00000088;
       --radius: 12px;
       --shadow: 0 10px 30px rgba(0,0,0,.25);
+      --header-h: 56px;
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#222; line-height:1.5; }
+    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:#222; line-height:1.5; padding-top: var(--header-h); }
+
+    /* SIMPLE TOP NAV (no dropdown) */
+    .site-header{
+      position: fixed; top:0; left:0; right:0; height: var(--header-h);
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 14px; background:#ffffffee; backdrop-filter: blur(6px);
+      border-bottom: 1px solid #00000010; z-index: 10;
+    }
+    .brand{ font-weight: 700; }
+    .nav{
+      display:flex; gap: 14px; flex-wrap: wrap;
+    }
+    .nav a{
+      color:#222; text-decoration:none; padding: 6px 8px; border-radius: 8px;
+    }
+    .nav a:hover{ background:#00000007; }
 
     /* HERO / CAROUSEL */
     .hero {
@@ -33,73 +51,40 @@
     .hero::after{
       content:""; position:absolute; inset:0; background: var(--overlay); z-index:1;
     }
-    .slides {
-      position: absolute; inset:0;
-    }
-    .slide {
-      position: absolute; inset:0;
-      opacity: 0;
-      transition: opacity 900ms ease;
-      will-change: opacity;
-    }
-    .slide img{
-      position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
-    }
+    .slides { position: absolute; inset:0; }
+    .slide { position: absolute; inset:0; opacity: 0; transition: opacity 900ms ease; will-change: opacity; }
     .slide.is-active { opacity: 1; }
+    .slide img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:center; }
 
     /* CONTENT OVERLAY */
     .hero-content{
-      position: relative; z-index: 2; /* above overlay */
-      height: 100%;
-      display: grid; place-items: center;
-      text-align: center; padding: 1rem;
+      position: relative; z-index: 2; height: 100%;
+      display: grid; place-items: center; text-align: center; padding: 1rem;
     }
-    .hero-inner{
-      max-width: 1100px; margin: 0 auto;
-      text-shadow: 0 2px 10px rgba(0,0,0,.6);
-    }
-    .hero h1{ font-size: clamp(1.8rem, 3.8vw, 3rem); margin: 0 0 .5rem; }
-    .hero p{ font-size: clamp(1rem, 1.6vw, 1.15rem); margin: 0 0 1rem; opacity:.95; }
-    .cta{
-      display:inline-block; padding:.75rem 1.1rem; background: var(--accent); color:#fff; text-decoration:none;
-      border-radius: .6rem; box-shadow: var(--shadow); font-weight: 600;
-    }
+    .hero-inner{ max-width: 1100px; margin: 0 auto; text-shadow: 0 2px 10px rgba(0,0,0,.6); }
+    .hero h1{ font-size: clamp(1.6rem, 3.2vw, 2.4rem); margin: 0 0 .4rem; }
+    .hero p{ font-size: clamp(.95rem, 1.4vw, 1.05rem); margin: 0 0 .8rem; opacity:.95; }
+    .cta{ display:inline-block; padding:.6rem 1rem; background: var(--accent); color:#fff; text-decoration:none; border-radius: .6rem; box-shadow: var(--shadow); font-weight: 600; }
 
     /* CONTROLS */
-    .carousel-controls{
-      position:absolute; inset: 0; z-index: 3; pointer-events: none;
-    }
+    .carousel-controls{ position:absolute; inset: 0; z-index: 3; pointer-events: none; }
     .arrow{
       position:absolute; top:50%; transform: translateY(-50%);
-      width: 44px; height:44px; border-radius: 999px;
-      background: var(--ctrl-bg); color:#fff; border:none;
-      display:grid; place-items:center; cursor:pointer;
-      pointer-events: auto;
+      width: 40px; height:40px; border-radius: 999px;
+      background: var(--ctrl-bg); color:#fff; border:none; display:grid; place-items:center; cursor:pointer; pointer-events: auto;
     }
     .arrow:hover{ background: var(--ctrl-bg-hover); }
     .arrow:focus-visible{ outline: 2px solid #fff; outline-offset: 2px; }
-    .arrow.prev{ left: 12px; }
-    .arrow.next{ right: 12px; }
+    .arrow.prev{ left: 10px; }
+    .arrow.next{ right: 10px; }
 
-    .dots{
-      position:absolute; left:50%; bottom: 12px; transform: translateX(-50%);
-      display:flex; gap: 10px; z-index:3; pointer-events:auto;
-    }
-    .dot{
-      width: 10px; height:10px; border-radius:999px; background: var(--dot);
-      border: 1px solid #ffffff77; cursor:pointer;
-    }
+    .dots{ position:absolute; left:50%; bottom: 10px; transform: translateX(-50%); display:flex; gap: 10px; z-index:3; pointer-events:auto; }
+    .dot{ width: 10px; height:10px; border-radius:999px; background: var(--dot); border: 1px solid #ffffff77; cursor:pointer; }
     .dot[aria-current="true"]{ background: var(--dot-active); border-color: #fff; }
-
-    /* PAUSE BADGE (on hover) */
-    .badge{
-      position:absolute; right:12px; bottom:12px; z-index:3;
-      background:#00000066; color:#fff; padding:.25rem .5rem; border-radius:.5rem; font-size:.85rem;
-      opacity:0; transition: opacity .2s ease; pointer-events:none;
-    }
+    .badge{ position:absolute; right:10px; bottom:10px; z-index:3; background:#00000066; color:#fff; padding:.2rem .45rem; border-radius:.5rem; font-size:.8rem; opacity:0; transition: opacity .2s ease; pointer-events:none; }
     .hero:hover .badge{ opacity:1; }
 
-    /* Reduced motion: no fades, instant switch & no autoplay */
+    /* Reduced motion */
     @media (prefers-reduced-motion: reduce){
       .slide{ transition:none; }
     }
@@ -107,71 +92,64 @@
 </head>
 <body>
 
-  <!-- HERO CAROUSEL -->
+  <!-- SIMPLE HEADER NAV -->
+  <header class="site-header">
+    <div class="brand">Tommy Sir’s 深圳牙科示範</div>
+    <nav class="nav" aria-label="主選單">
+      <a href="#clinic">我們的診所</a>
+      <a href="#cosmetic">美容牙科</a>
+      <a href="#general">一般牙科</a>
+      <a href="#contact">聯絡我們</a>
+      <a href="#about">關於我們</a>
+    </nav>
+  </header>
+
+  <!-- HERO CAROUSEL (images still pointing to GitHub raw for now) -->
   <section class="hero" id="hero"
     role="region"
     aria-roledescription="carousel"
-    aria-label="Featured dental images"
+    aria-label="牙科精選圖片"
     aria-live="off"
     data-autoplay="true"
     data-interval="5000"
   >
     <div class="slides">
-      <!-- Swap these sources to local /img/*.png later -->
       <figure class="slide is-active" aria-hidden="false">
-        <img
-          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_1.png"
-          alt="Modern dental clinic environment"
-          loading="eager"
-          decoding="async"
-        >
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_1.png" alt="現代化牙科診所環境" loading="eager" decoding="async">
       </figure>
       <figure class="slide" aria-hidden="true">
-        <img
-          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_2.png"
-          alt="Professional dentist consultation"
-          loading="lazy"
-          decoding="async"
-        >
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_2.png" alt="專業牙醫諮詢" loading="lazy" decoding="async">
       </figure>
       <figure class="slide" aria-hidden="true">
-        <img
-          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_3.png"
-          alt="Comfortable treatment room"
-          loading="lazy"
-          decoding="async"
-        >
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_3.png" alt="舒適治療室" loading="lazy" decoding="async">
       </figure>
       <figure class="slide" aria-hidden="true">
-        <img
-          src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_4.png"
-          alt="Patient-friendly reception area"
-          loading="lazy"
-          decoding="async"
-        >
+        <img src="https://raw.githubusercontent.com/TommyTam2012/dental_web_demo/main/Dental_Demo_4.png" alt="親切的接待區" loading="lazy" decoding="async">
       </figure>
     </div>
 
     <div class="hero-content">
       <div class="hero-inner">
-        <h1>Compassionate Care, Modern Dentistry</h1>
-        <p>Advanced technology • Gentle approach • Convenient scheduling</p>
-        <a class="cta" href="#book">Book Appointment</a>
+        <h1>關懷備至、現代牙科</h1>
+        <p>先進技術 • 溫和手法 • 方便預約</p>
+        <a class="cta" href="#contact">立即預約</a>
       </div>
     </div>
 
-    <!-- Controls & dots -->
     <div class="carousel-controls" aria-hidden="false">
-      <button class="arrow prev" aria-label="Previous slide" title="Previous (←)">
-        &#10094;
-      </button>
-      <button class="arrow next" aria-label="Next slide" title="Next (→)">
-        &#10095;
-      </button>
-      <div class="dots" role="tablist" aria-label="Choose slide"></div>
-      <div class="badge" id="badge">Paused</div>
+      <button class="arrow prev" aria-label="上一張" title="上一張（←）">&#10094;</button>
+      <button class="arrow next" aria-label="下一張" title="下一張（→）">&#10095;</button>
+      <div class="dots" role="tablist" aria-label="選擇圖片"></div>
+      <div class="badge" id="badge">已暫停</div>
     </div>
   </section>
+
+  <!-- Placeholder sections to match nav anchors -->
+  <section id="clinic" style="padding:40px 16px;">我們的診所：內容待加入</section>
+  <section id="cosmetic" style="padding:40px 16px; background:#fafafa;">美容牙科：內容待加入</section>
+  <section id="general" style="padding:40px 16px;">一般牙科：內容待加入</section>
+  <section id="contact" style="padding:40px 16px; background:#fafafa;">聯絡我們：內容待加入</section>
+  <section id="about" style="padding:40px 16px;">關於我們：內容待加入</section>
 
   <script>
   (function(){
@@ -194,7 +172,7 @@
       b.className = 'dot';
       b.type = 'button';
       b.setAttribute('role', 'tab');
-      b.setAttribute('aria-label', `Go to slide ${i+1}`);
+      b.setAttribute('aria-label', `前往第 ${i+1} 張`);
       b.setAttribute('aria-controls', `slide-${i+1}`);
       b.addEventListener('click', () => goTo(i, true));
       dotsWrap.appendChild(b);
@@ -209,14 +187,14 @@
       const dots = dotsWrap.querySelectorAll('.dot');
       dots.forEach((d, i) => {
         d.setAttribute('aria-current', i === index ? 'true' : 'false');
-        d.title = i === index ? 'Current slide' : `Go to slide ${i+1}`;
+        d.title = i === index ? '目前圖片' : `前往第 ${i+1} 張`;
       });
     }
 
     function goTo(i, fromUser=false){
       index = (i + slides.length) % slides.length;
       syncUI();
-      if (fromUser) restartAutoplay(); // keeps autoplay feeling responsive
+      if (fromUser) restartAutoplay();
     }
 
     function next(){ goTo(index + 1); }
@@ -228,14 +206,8 @@
       stopAutoplay();
       timer = setInterval(next, intervalMs);
     }
-    function stopAutoplay(){
-      if (timer) clearInterval(timer);
-      timer = null;
-    }
-    function restartAutoplay(){
-      stopAutoplay();
-      startAutoplay();
-    }
+    function stopAutoplay(){ if (timer) clearInterval(timer); timer = null; }
+    function restartAutoplay(){ stopAutoplay(); startAutoplay(); }
 
     // Controls
     nextBtn.addEventListener('click', () => next());
@@ -245,7 +217,7 @@
     hero.addEventListener('mouseenter', () => { stopAutoplay(); badge.style.opacity = '1'; });
     hero.addEventListener('mouseleave', () => { if (!userPaused){ startAutoplay(); } badge.style.opacity = '0'; });
 
-    // Space toggles manual pause
+    // Keyboard
     document.addEventListener('keydown', (e) => {
       if (e.code === 'ArrowRight') { e.preventDefault(); next(); }
       else if (e.code === 'ArrowLeft') { e.preventDefault(); prev(); }
@@ -257,7 +229,7 @@
       }
     });
 
-    // Pause when tab is hidden (battery friendly)
+    // Visibility
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) stopAutoplay();
       else if (!userPaused) startAutoplay();
@@ -269,23 +241,17 @@
       touching = true; startX = e.touches[0].clientX; dx = 0; stopAutoplay();
     }, {passive:true});
     hero.addEventListener('touchmove', (e) => {
-      if (!touching) return;
-      dx = e.touches[0].clientX - startX;
+      if (!touching) return; dx = e.touches[0].clientX - startX;
     }, {passive:true});
     hero.addEventListener('touchend', () => {
-      if (!touching) return;
-      touching = false;
+      if (!touching) return; touching = false;
       if (Math.abs(dx) > 40){ dx > 0 ? prev() : next(); }
       if (!userPaused) startAutoplay();
     });
 
-    // Initial paint
-    syncUI();
-    startAutoplay();
+    // Initial
+    syncUI(); startAutoplay();
   })();
   </script>
-
-  <!-- (Optional) rest of your page goes here... -->
-
 </body>
 </html>
