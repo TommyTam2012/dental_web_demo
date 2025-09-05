@@ -301,7 +301,7 @@
     if (!slides.length) return;
 
     let index = 0;
-    let autoplay = hero.dataset.autoplay === 'true';
+    let autoplay = true;
     let intervalMs = parseInt(hero.dataset.interval || '5000', 10);
     let timer = null;
     let userPaused = false;
